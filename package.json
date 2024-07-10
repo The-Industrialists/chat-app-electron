@@ -1,9 +1,10 @@
 {
   "name": "chatappd",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron .",
+    "start-server": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -11,5 +12,8 @@
   "description": "",
   "devDependencies": {
     "electron": "^31.2.0"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
   }
 }

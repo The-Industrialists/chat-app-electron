@@ -1,29 +1,37 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain, contextBridge } = require("electron");
 const path = require("path");
 
+let mainWindow;
+
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: true,
+      nodeIntegration: false, // Disable Node.js integration in renderer process
+      contextIsolation: true, // Enable context isolation
     },
   });
 
   mainWindow.loadFile("index.html");
+
+  // Open the DevTools (for debugging purposes)
+  // mainWindow.webContents.openDevTools();
 }
 
-app.on("ready", createWindow);
+app.on("ready", () => {
+  createWindow();
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
-
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+  // Expose IPC methods securely using contextBridge
+  contextBridge.exposeInMainWorld("api", {
+    send: (channel, data) => {
+      // Send message to renderer process
+      mainWindow.webContents.send(channel, data);
+    },
+    receive: (channel, func) => {
+      // Listen for message from renderer process
+      ipcMain.on(channel, (event, ...args) => func(...args));
+    },
+  });
 });

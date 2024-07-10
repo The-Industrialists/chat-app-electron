@@ -1,11 +1,102 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
-        <title>My Chat App</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Electron Discord-Like App</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+            }
+            .message-box {
+                margin-top: auto;
+                display: flex;
+                align-items: center;
+            }
+            textarea {
+                width: calc(100% - 70px);
+                height: 60px;
+                margin-right: 10px;
+                padding: 10px;
+                resize: none;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            button {
+                padding: 10px 20px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+            .messages {
+                margin-top: 20px;
+                overflow-y: scroll;
+                flex: 1;
+            }
+            .message {
+                background-color: #f0f0f0;
+                padding: 10px;
+                margin-bottom: 10px;
+                border-radius: 4px;
+            }
+        </style>
     </head>
     <body>
-        <h1>Welcome to My Chat App</h1>
-        <div id="chat-container"></div>
-        <script src="renderer.js"></script>
+        <div class="messages" id="messageContainer">
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <div class="message-box">
+            <textarea
+                id="messageInput"
+                placeholder="Type your message"
+            ></textarea>
+            <button id="sendButton">Send</button>
+        </div>
+
+        <script>
+            // Handle send button click
+            document
+                .getElementById("sendButton")
+                .addEventListener("click", () => {
+                    const message = document
+                        .getElementById("messageInput")
+                        .value.trim();
+                    if (message) {
+                        // Send message to main process
+                        window.api.send("message", message);
+
+                        // Add message to own view (for testing)
+                        addMessage(message);
+
+                        // Clear input
+                        document.getElementById("messageInput").value = "";
+                    }
+                });
+
+            // Function to add a new message to the message container
+            function addMessage(message) {
+                const messageContainer =
+                    document.getElementById("messageContainer");
+                const messageElement = document.createElement("div");
+                messageElement.classList.add("message");
+                messageElement.textContent = message;
+                messageContainer.appendChild(messageElement);
+
+                // Scroll to bottom
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            }
+
+            // Listen for incoming messages from main process
+            window.api.receive("newMessage", (message) => {
+                addMessage(message);
+            });
+        </script>
     </body>
 </html>
